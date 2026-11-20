@@ -24,17 +24,11 @@ class StudentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:students,email'],
-            'phone' => ['required', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'date_of_birth' => ['nullable', 'date'],
-        ]);
+        $student = Student::create($request->validate($this->rules()));
 
-        Student::create($validated);
-
-        return redirect()->route('students.index')->with('success', 'Student created successfully.');
+        return redirect()
+            ->route('students.index')
+            ->with('success', "Student {$student->name} created successfully!");
     }
 
     public function show(Student $student): View
@@ -49,23 +43,36 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('students', 'email')->ignore($student->id)],
-            'phone' => ['required', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'date_of_birth' => ['nullable', 'date'],
-        ]);
+        $student->update($request->validate($this->rules($student)));
 
-        $student->update($validated);
-
-        return redirect()->route('students.index')->with('success', 'Student updated successfully.');
+        return redirect()
+            ->route('students.show', $student)
+            ->with('success', 'Student updated successfully!');
     }
 
     public function destroy(Student $student): RedirectResponse
     {
         $student->delete();
 
-        return redirect()->route('students.index')->with('success', 'Student deleted successfully.');
+        return redirect()
+            ->route('students.index')
+            ->with('success', 'Student deleted successfully!');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function rules(?Student $student = null): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required', 'email', 'max:255',
+                Rule::unique('students')->ignore($student?->id),
+            ],
+            'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'date_of_birth' => 'nullable|date',
+        ];
     }
 }
