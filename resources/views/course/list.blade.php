@@ -1,53 +1,38 @@
-@extends('layout')
-
-@section('title', 'Courses')
-
-@section('content')
-    <div class="actions">
-        <h1>Courses</h1>
-        <a class="button" href="{{ route('courses.create') }}">Create Course</a>
-    </div>
-
-    @if ($courses->isEmpty())
-        <p class="empty">No courses exist yet.</p>
-    @else
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Duration (weeks)</th>
-                        <th>Fee</th>
-                        <th>Difficulty</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($courses as $course)
-                        <tr>
-                            <td>{{ $course->id }}</td>
-                            <td>{{ $course->name }}</td>
-                            <td>{{ $course->duration }}</td>
-                            <td>{{ number_format((float) $course->fee, 2) }}</td>
-                            <td>{{ $course->difficulty }}</td>
-                            <td>{{ $course->is_active ? 'Active' : 'Inactive' }}</td>
-                            <td>
-                                <div class="actions">
-                                    <a href="{{ route('courses.show', $course) }}">View</a>
-                                    <a href="{{ route('courses.edit', $course) }}">Edit</a>
-                                    <form action="{{ route('courses.destroy', $course) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="button danger" type="submit">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    @endif
-@endsection
+<x-layouts.app title="Courses">
+    <h1>Courses</h1>
+    <a href="{{ route('courses.create') }}" class="btn">Create Course</a>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Duration</th>
+                <th>Fee</th>
+                <th>Difficulty</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($courses as $course)
+                <tr>
+                    <td>{{ $course->id }}</td>
+                    <td>{{ $course->name }}</td>
+                    <td>{{ $course->duration }} weeks</td>
+                    <td>{{ number_format((float) $course->fee, 2) }}</td>
+                    <td>{{ $course->difficulty }}</td>
+                    <td>{{ $course->is_active ? 'Yes' : 'No' }}</td>
+                    <td>
+                        <a href="{{ route('courses.show', $course) }}">View</a>
+                        <a href="{{ route('courses.edit', $course) }}">Edit</a>
+                        <x-delete-form :action="route('courses.destroy', $course)" />
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7">No courses found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</x-layouts.app>
